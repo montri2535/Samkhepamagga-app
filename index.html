@@ -1,11 +1,9 @@
-ระยะ 1 ver.up
-
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>จิตพลศาสตร์และคณนารมณ์</title>
+  <title>Psychodynamics & Emotional Counting</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,33 +26,33 @@
 <body>
 <div class="container">
   <div style="font-size: 48px; width: 80px; height: 80px; line-height: 80px; text-align: center; border-radius: 50%; background: radial-gradient(circle at center, gold 40%, #b8860b 100%); color: white; box-shadow: 0 0 20px gold; margin: 0 auto 20px auto;">Ψ</div>
-  <h1>จิตพลศาสตร์และคณนารมณ์</h1>
-  <p style="text-align:center; font-size: 0.9em;">โดย พระอธิการมนตรี ปภสฺสโร (แสนสุภา)</p>
+  <h1>Psychodynamics & Emotional Counting</h1>
+  <p style="text-align:center; font-size: 0.9em;">by Phra Athikan Montri Paphassaro (Saensupa)</p>
 
-  <input type="text" id="firstName" placeholder="ชื่อ">
-  <input type="text" id="lastName" placeholder="นามสกุล">
-  <input type="number" id="minutes" placeholder="ระบุจำนวนนาที (เช่น 5)">
-  <button onclick="startPractice()" class="primary">เริ่มปฏิบัติ</button>
+  <input type="text" id="firstName" placeholder="First Name">
+  <input type="text" id="lastName" placeholder="Last Name">
+  <input type="number" id="minutes" placeholder="Duration in minutes (e.g. 5)">
+  <button onclick="startPractice()" class="primary">Start Practice</button>
 
   <div id="timerDisplay"></div>
   <button id="tapBtn" disabled>0</button>
-  <p style="text-align:center; font-size: 0.8em;">กดปุ่มนับอารมณ์สีแดง</p>
+  <p style="text-align:center; font-size: 0.8em;">Tap the red button to count awareness</p>
 
   <form id="s-form"></form>
-  <button onclick="submitData()" class="primary">คำนวณและประเมินผล</button>
+  <button onclick="submitData()" class="primary">Calculate & Evaluate</button>
 
   <div id="resultSection"></div>
 
   <div style="margin-top: 30px;">
-    <h3>ดูผลย้อนหลัง</h3>
-    <button onclick="showHistory(10)">ย้อนหลัง 10 ครั้ง</button>
-    <button onclick="showHistory(20)">ย้อนหลัง 20 ครั้ง</button>
-    <button onclick="showHistory(30)">ย้อนหลัง 30 ครั้ง</button>
+    <h3>Recent Records</h3>
+    <button onclick="showHistory(10)">Last 10 Sessions</button>
+    <button onclick="showHistory(20)">Last 20 Sessions</button>
+    <button onclick="showHistory(30)">Last 30 Sessions</button>
     <div id="historyResult"></div>
   </div>
 
   <div style="margin-top: 30px;">
-    <h3>กราฟแนวโน้มค่าจิตพลศาสตร์</h3>
+    <h3>Psychodynamic Trends</h3>
     <canvas id="trendChart" height="150"></canvas>
   </div>
 </div>
@@ -76,7 +74,7 @@ function startPractice() {
   const firstName = document.getElementById("firstName").value;
   const lastName = document.getElementById("lastName").value;
   if (!firstName || !lastName || isNaN(minutes) || minutes <= 0) {
-    alert("กรุณากรอกชื่อ-นามสกุล และเวลาที่ถูกต้อง");
+    alert("Please enter a valid name and duration.");
     return;
   }
 
@@ -93,7 +91,7 @@ function startPractice() {
     updateTimerDisplay();
     if (remainingSeconds <= 0) {
       clearInterval(timer);
-      alert("หมดเวลา กรุณาทำแบบประเมินให้ครบ");
+      alert("Time's up! Please complete the evaluation.");
       tapBtn.disabled = true;
     }
   }, 1000);
@@ -112,9 +110,14 @@ tapBtn.addEventListener("click", () => {
 
 function generateSForm() {
   const questions = [
-    "S1.1 ตื่นรู้อารมณ์อย่างมาก", "S1.2 กระปรี้กระเปร่าในการดูอารมณ์", "S1.3 รู้ทันอารมณ์ทุกครั้ง",
-    "S2.1 มีความสงบมากขึ้น", "S2.2 มีสมาธิที่ดิ่งลง", "S2.3 มีความนิ่งและผ่อนคลาย",
-    "S3.1 มีความระวังอารมณ์สูง", "S3.2 พยายามตั้งสติในการรู้อารมณ์ทุกครั้ง"
+    "S1.1 Highly alert to emotions", 
+    "S1.2 Energetic in observing emotions", 
+    "S1.3 Aware of emotions every time",
+    "S2.1 Increased calmness", 
+    "S2.2 Deepened concentration", 
+    "S2.3 Stillness and relaxation",
+    "S3.1 High emotional vigilance", 
+    "S3.2 Attempting mindfulness in every moment"
   ];
 
   sForm.innerHTML = "";
@@ -150,7 +153,7 @@ function submitData() {
     return selected ? parseInt(selected.textContent) : null;
   });
 
-  if (scores.includes(null)) return alert("กรุณาให้คะแนนทุกข้อ");
+  if (scores.includes(null)) return alert("Please rate all questions.");
 
   const E = minutes / counter;
   const S̄ = scores.reduce((a, b) => a + b, 0) / scores.length;
@@ -181,7 +184,7 @@ function submitData() {
     D = (N * Ψs * S̄) / (E * (σs + ε));
   }
 
-  const now = new Date().toLocaleString("th-TH");
+  const now = new Date().toLocaleString("en-US");
   const record = { date: now, name: `${name} ${lastname}`, E, S̄, σs, Ψs, ES, D };
   history.push(record);
   displayResult(record);
@@ -192,46 +195,47 @@ function getQualityLabel(type, value) {
   if (value == null || isNaN(value)) return "-";
   switch (type) {
     case "E":
-      return value <= 0.5 ? "ดีมาก" :
-             value <= 1 ? "ดี" :
-             value <= 2 ? "พอใช้" :
-             "ควรปรับปรุง";
+      return value <= 0.5 ? "Excellent" :
+             value <= 1 ? "Good" :
+             value <= 2 ? "Fair" :
+             "Needs Improvement";
     case "S̄":
-      return value >= 4 ? "ดีมาก" :
-             value >= 3 ? "ดี" :
-             value >= 2 ? "พอใช้" :
-             "ควรปรับปรุง";
+      return value >= 4 ? "Excellent" :
+             value >= 3 ? "Good" :
+             value >= 2 ? "Fair" :
+             "Needs Improvement";
     case "σs":
-      return value < 0.3 ? "ดีมาก" :
-             value < 0.6 ? "ดี" :
-             value < 1.0 ? "พอใช้" :
-             "ควรปรับปรุง";
+      return value < 0.3 ? "Excellent" :
+             value < 0.6 ? "Good" :
+             value < 1.0 ? "Fair" :
+             "Needs Improvement";
     case "Ψs":
     case "ES":
     case "D":
-      return value >= 4 ? "ดีมาก" :
-             value >= 3 ? "ดี" :
-             value >= 2 ? "พอใช้" :
-             "ควรปรับปรุง";
+      return value >= 4 ? "Excellent" :
+             value >= 3 ? "Good" :
+             value >= 2 ? "Fair" :
+             "Needs Improvement";
     default:
       return "-";
   }
 }
+
 function displayResult(r) {
   const div = document.getElementById("resultSection");
   div.innerHTML = `
-    <h3>ผลการประเมิน</h3>
+    <h3>Evaluation Result</h3>
     <table>
-      <tr><th>เวลา</th><th>ชื่อ</th><th>E</th><th>S̄</th><th>σs</th><th>Ψs</th><th>ES</th><th>D</th></tr>
+      <tr><th>Time</th><th>Name</th><th>E</th><th>S̄</th><th>σs</th><th>Ψs</th><th>ES</th><th>D</th></tr>
       <tr>
         <td>${r.date}</td>
         <td>${r.name}</td>
-       <td>${r.E.toFixed(2)}<br><small>${getQualityLabel("E", r.E)}</small></td>
-<td>${r.S̄.toFixed(2)}<br><small>${getQualityLabel("S̄", r.S̄)}</small></td>
-<td>${r.σs.toFixed(2)}<br><small>${getQualityLabel("σs", r.σs)}</small></td>
-<td>${r.Ψs.toFixed(2)}<br><small>${getQualityLabel("Ψs", r.Ψs)}</small></td>
-<td>${r.ES ? r.ES.toFixed(2) : "-"}<br><small>${getQualityLabel("ES", r.ES)}</small></td>
-<td>${r.D ? r.D.toFixed(2) : "-"}<br><small>${getQualityLabel("D", r.D)}</small></td>
+        <td>${r.E.toFixed(2)}<br><small>${getQualityLabel("E", r.E)}</small></td>
+        <td>${r.S̄.toFixed(2)}<br><small>${getQualityLabel("S̄", r.S̄)}</small></td>
+        <td>${r.σs.toFixed(2)}<br><small>${getQualityLabel("σs", r.σs)}</small></td>
+        <td>${r.Ψs.toFixed(2)}<br><small>${getQualityLabel("Ψs", r.Ψs)}</small></td>
+        <td>${r.ES ? r.ES.toFixed(2) : "-"}<br><small>${getQualityLabel("ES", r.ES)}</small></td>
+        <td>${r.D ? r.D.toFixed(2) : "-"}<br><small>${getQualityLabel("D", r.D)}</small></td>
       </tr>
     </table>
   `;
@@ -240,22 +244,22 @@ function displayResult(r) {
 function showHistory(n) {
   const resultDiv = document.getElementById("historyResult");
   if (history.length === 0) {
-    resultDiv.innerHTML = "<p>ยังไม่มีข้อมูลย้อนหลัง</p>";
+    resultDiv.innerHTML = "<p>No historical data available.</p>";
     return;
   }
 
   const recent = history.slice(-n).reverse();
-  let html = `<table><tr><th>เวลา</th><th>ชื่อ</th><th>E</th><th>S̄</th><th>σs</th><th>Ψs</th><th>ES</th><th>D</th></tr>`;
+  let html = `<table><tr><th>Time</th><th>Name</th><th>E</th><th>S̄</th><th>σs</th><th>Ψs</th><th>ES</th><th>D</th></tr>`;
   recent.forEach(r => {
     html += `<tr>
       <td>${r.date}</td>
       <td>${r.name}</td>
-    <td>${r.E.toFixed(2)}<br><small>${getQualityLabel("E", r.E)}</small></td>
-<td>${r.S̄.toFixed(2)}<br><small>${getQualityLabel("S̄", r.S̄)}</small></td>
-<td>${r.σs.toFixed(2)}<br><small>${getQualityLabel("σs", r.σs)}</small></td>
-<td>${r.Ψs.toFixed(2)}<br><small>${getQualityLabel("Ψs", r.Ψs)}</small></td>
-<td>${r.ES ? r.ES.toFixed(2) : "-"}<br><small>${getQualityLabel("ES", r.ES)}</small></td>
-<td>${r.D ? r.D.toFixed(2) : "-"}<br><small>${getQualityLabel("D", r.D)}</small></td>
+      <td>${r.E.toFixed(2)}<br><small>${getQualityLabel("E", r.E)}</small></td>
+      <td>${r.S̄.toFixed(2)}<br><small>${getQualityLabel("S̄", r.S̄)}</small></td>
+      <td>${r.σs.toFixed(2)}<br><small>${getQualityLabel("σs", r.σs)}</small></td>
+      <td>${r.Ψs.toFixed(2)}<br><small>${getQualityLabel("Ψs", r.Ψs)}</small></td>
+      <td>${r.ES ? r.ES.toFixed(2) : "-"}<br><small>${getQualityLabel("ES", r.ES)}</small></td>
+      <td>${r.D ? r.D.toFixed(2) : "-"}<br><small>${getQualityLabel("D", r.D)}</small></td>
     </tr>`;
   });
   html += "</table>";
