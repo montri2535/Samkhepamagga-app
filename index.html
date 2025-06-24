@@ -1,4 +1,5 @@
-100%
+ระยะ 1 ver.up
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -6,7 +7,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>จิตพลศาสตร์และคณนารมณ์</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Sarabun', sans-serif; background: #f2f2f2; padding: 20px; }
@@ -27,21 +27,7 @@
 </head>
 <body>
 <div class="container">
-  <div style="
-  font-family: 'Leelawadee UI', serif;
-  font-size: 48px;
-  width: 80px;
-  height: 80px;
-  line-height: 80px;
-  text-align: center;
-  border-radius: 50%;
-  background: radial-gradient(circle at center, gold 40%, #b8860b 100%);
-  color: white;
-  box-shadow: 0 0 20px gold;
-  margin: 0 auto 20px auto;
-">
-  Ψ
-</div>
+  <div style="font-size: 48px; width: 80px; height: 80px; line-height: 80px; text-align: center; border-radius: 50%; background: radial-gradient(circle at center, gold 40%, #b8860b 100%); color: white; box-shadow: 0 0 20px gold; margin: 0 auto 20px auto;">Ψ</div>
   <h1>จิตพลศาสตร์และคณนารมณ์</h1>
   <p style="text-align:center; font-size: 0.9em;">โดย พระอธิการมนตรี ปภสฺสโร (แสนสุภา)</p>
 
@@ -72,10 +58,7 @@
     <canvas id="trendChart" height="150"></canvas>
   </div>
 </div>
-<div style="margin-top: 30px;">
-  <h3>Export ข้อมูล</h3>
-  <button onclick="exportCSV()">Download CSV</button>
-</div>
+
 <script>
 let counter = 0;
 let timer;
@@ -160,6 +143,8 @@ function generateSForm() {
 function submitData() {
   const name = document.getElementById("firstName").value;
   const lastname = document.getElementById("lastName").value;
+  const minutes = parseInt(document.getElementById("minutes").value);
+
   const scores = Array.from(document.querySelectorAll(".score-row")).map(row => {
     const selected = Array.from(row.querySelectorAll("button")).find(b => b.style.background.includes("rgb(76"));
     return selected ? parseInt(selected.textContent) : null;
@@ -167,92 +152,121 @@ function submitData() {
 
   if (scores.includes(null)) return alert("กรุณาให้คะแนนทุกข้อ");
 
-  const duration = parseInt(document.getElementById("minutes").value) * 60;
-  const E = counter / (duration || 1);
+  const E = minutes / counter;
   const S̄ = scores.reduce((a, b) => a + b, 0) / scores.length;
-  const σs = Math.sqrt(scores.map(v => (v - S̄) ** 2).reduce((a, b) => a + b, 0) / scores.length);
-  const Ψs = S̄;
-  const [Emin, Emax] = [Math.min(...history.map(h => h.E).concat(E)), Math.max(...history.map(h => h.E).concat(E))];
-  const E_norm = 1 - (E - Emin) / ((Emax - Emin) || 0.0001);
-  const S_norm = (S̄ - 1) / 4;
-  const ES = (E_norm + S_norm) / (σs + 0.01);
-  const D = ES * 86.4;
-  const now = new Date().toLocaleString("th-TH");
+  const σs = Math.sqrt(scores.reduce((sum, s) => sum + Math.pow(s - S̄, 2), 0) / scores.length);
+  const Ψs = (
+    (scores[0] + scores[1] + scores[2]) / 3 +
+    (scores[3] + scores[4] + scores[5]) / 3 +
+    (scores[6] + scores[7]) / 2
+  ) / 3;
 
+  const ε = 0.01;
+  let ES = null;
+  let D = null;
+
+  if (history.length >= 2) {
+    const E_min = Math.min(...history.map(h => h.E), E);
+    const E_max = Math.max(...history.map(h => h.E), E);
+    const S_min = 1;
+    const S_max = 5;
+
+    if (E_max > E_min) {
+      const E_norm = 1 - (E - E_min) / (E_max - E_min);
+      const S_norm = (S̄ - S_min) / (S_max - S_min);
+      ES = (E_norm + S_norm) / (σs + ε);
+    }
+
+    const N = counter / minutes;
+    D = (N * Ψs * S̄) / (E * (σs + ε));
+  }
+
+  const now = new Date().toLocaleString("th-TH");
   const record = { date: now, name: `${name} ${lastname}`, E, S̄, σs, Ψs, ES, D };
   history.push(record);
   displayResult(record);
   updateGraph();
 }
 
+function getQualityLabel(type, value) {
+  if (value == null || isNaN(value)) return "-";
+  switch (type) {
+    case "E":
+      return value <= 0.5 ? "ดีมาก" :
+             value <= 1 ? "ดี" :
+             value <= 2 ? "พอใช้" :
+             "ควรปรับปรุง";
+    case "S̄":
+      return value >= 4 ? "ดีมาก" :
+             value >= 3 ? "ดี" :
+             value >= 2 ? "พอใช้" :
+             "ควรปรับปรุง";
+    case "σs":
+      return value < 0.3 ? "ดีมาก" :
+             value < 0.6 ? "ดี" :
+             value < 1.0 ? "พอใช้" :
+             "ควรปรับปรุง";
+    case "Ψs":
+    case "ES":
+    case "D":
+      return value >= 4 ? "ดีมาก" :
+             value >= 3 ? "ดี" :
+             value >= 2 ? "พอใช้" :
+             "ควรปรับปรุง";
+    default:
+      return "-";
+  }
+}
 function displayResult(r) {
   const div = document.getElementById("resultSection");
   div.innerHTML = `
     <h3>ผลการประเมิน</h3>
     <table>
-      <tr>
-        <th>เวลา</th><th>ชื่อ</th><th>E</th><th>S̄</th><th>σs</th><th>Ψs</th><th>ES</th><th>D</th>
-      </tr>
+      <tr><th>เวลา</th><th>ชื่อ</th><th>E</th><th>S̄</th><th>σs</th><th>Ψs</th><th>ES</th><th>D</th></tr>
       <tr>
         <td>${r.date}</td>
         <td>${r.name}</td>
-        <td>${r.E.toFixed(2)}<br><small>${getQualityLabel("E", r.E)}</small></td>
-        <td>${r.S̄.toFixed(2)}<br><small>${getQualityLabel("S̄", r.S̄)}</small></td>
-        <td>${r.σs.toFixed(2)}<br><small>${getQualityLabel("σs", r.σs)}</small></td>
-        <td>${r.Ψs.toFixed(2)}<br><small>${getQualityLabel("Ψs", r.Ψs)}</small></td>
-        <td>${r.ES.toFixed(2)}<br><small>${getQualityLabel("ES", r.ES)}</small></td>
-        <td>${r.D.toFixed(2)}<br><small>${getQualityLabel("D", r.D)}</small></td>
+       <td>${r.E.toFixed(2)}<br><small>${getQualityLabel("E", r.E)}</small></td>
+<td>${r.S̄.toFixed(2)}<br><small>${getQualityLabel("S̄", r.S̄)}</small></td>
+<td>${r.σs.toFixed(2)}<br><small>${getQualityLabel("σs", r.σs)}</small></td>
+<td>${r.Ψs.toFixed(2)}<br><small>${getQualityLabel("Ψs", r.Ψs)}</small></td>
+<td>${r.ES ? r.ES.toFixed(2) : "-"}<br><small>${getQualityLabel("ES", r.ES)}</small></td>
+<td>${r.D ? r.D.toFixed(2) : "-"}<br><small>${getQualityLabel("D", r.D)}</small></td>
       </tr>
     </table>
   `;
 }
-  function showHistory(n) {
+
+function showHistory(n) {
   const resultDiv = document.getElementById("historyResult");
   if (history.length === 0) {
     resultDiv.innerHTML = "<p>ยังไม่มีข้อมูลย้อนหลัง</p>";
     return;
   }
 
-  const recent = history.slice(-n).reverse(); // เอากลับหลังสุด n รายการ
-  let html = `<table>
-    <tr>
-      <th>เวลา</th><th>ชื่อ</th><th>E</th><th>S̄</th><th>σs</th><th>Ψs</th><th>ES</th><th>D</th>
-    </tr>`;
-  
+  const recent = history.slice(-n).reverse();
+  let html = `<table><tr><th>เวลา</th><th>ชื่อ</th><th>E</th><th>S̄</th><th>σs</th><th>Ψs</th><th>ES</th><th>D</th></tr>`;
   recent.forEach(r => {
     html += `<tr>
       <td>${r.date}</td>
       <td>${r.name}</td>
-      <td>${r.E.toFixed(2)}<br><small>${getQualityLabel("E", r.E)}</small></td>
-      <td>${r.S̄.toFixed(2)}<br><small>${getQualityLabel("S̄", r.S̄)}</small></td>
-      <td>${r.σs.toFixed(2)}<br><small>${getQualityLabel("σs", r.σs)}</small></td>
-      <td>${r.Ψs.toFixed(2)}<br><small>${getQualityLabel("Ψs", r.Ψs)}</small></td>
-      <td>${r.ES.toFixed(2)}<br><small>${getQualityLabel("ES", r.ES)}</small></td>
-      <td>${r.D.toFixed(2)}<br><small>${getQualityLabel("D", r.D)}</small></td>
+    <td>${r.E.toFixed(2)}<br><small>${getQualityLabel("E", r.E)}</small></td>
+<td>${r.S̄.toFixed(2)}<br><small>${getQualityLabel("S̄", r.S̄)}</small></td>
+<td>${r.σs.toFixed(2)}<br><small>${getQualityLabel("σs", r.σs)}</small></td>
+<td>${r.Ψs.toFixed(2)}<br><small>${getQualityLabel("Ψs", r.Ψs)}</small></td>
+<td>${r.ES ? r.ES.toFixed(2) : "-"}<br><small>${getQualityLabel("ES", r.ES)}</small></td>
+<td>${r.D ? r.D.toFixed(2) : "-"}<br><small>${getQualityLabel("D", r.D)}</small></td>
     </tr>`;
   });
-
   html += "</table>";
   resultDiv.innerHTML = html;
-}
-
-function getQualityLabel(type, value) {
-  switch (type) {
-    case "E": return value <= 0.05 ? "ดีมาก" : value <= 0.1 ? "ดี" : "ควรปรับปรุง";
-    case "S̄": return value >= 4 ? "ดีมาก" : value >= 3 ? "ดี" : "ควรปรับปรุง";
-    case "σs": return value < 0.3 ? "ดีมาก" : value < 0.6 ? "ดี" : "ควรปรับปรุง";
-    case "Ψs": return value >= 4 ? "ดีมาก" : value >= 3 ? "ดี" : "ควรปรับปรุง";
-    case "ES": return value >= 100 ? "ดีมาก" : value >= 50 ? "ดี" : "ควรปรับปรุง";
-    case "D": return value >= 300 ? "ดีมาก" : value >= 100 ? "ดี" : "ควรปรับปรุง";
-    default: return "-";
-  }
 }
 
 function updateGraph() {
   const labels = history.map(h => h.date);
   const dataE = history.map(h => h.E);
-  const dataES = history.map(h => h.ES);
-  const dataD = history.map(h => h.D);
+  const dataES = history.map(h => h.ES || null);
+  const dataD = history.map(h => h.D || null);
 
   if (chart) chart.destroy();
   chart = new Chart(trendChart, {
@@ -266,36 +280,6 @@ function updateGraph() {
       ]
     }
   });
-}
-function exportCSV() {
-  if (history.length === 0) {
-    alert("ไม่มีข้อมูลให้บันทึก");
-    return;
-  }
-
-  const headers = ["เวลา", "ชื่อ", "E", "S̄", "σs", "Ψs", "ES", "D"];
-  const rows = history.map(r => [
-    r.timestamp,
-    r.name,
-    r.E,
-    r.S̄,
-    r.σs,
-    r.Ψs,
-    r.ES,
-    r.D
-  ]);
-
-  const csvContent =
-    "data:text/csv;charset=utf-8," +
-    [headers, ...rows].map(e => e.join(",")).join("\n");
-
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", "จิตพลศาสตร์.csv");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 }
 </script>
 </body>
